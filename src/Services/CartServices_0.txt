@@ -1,0 +1,106 @@
+<?php
+
+namespace App\Services;
+
+use App\Repository\ProductRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\RelateProducts;
+use App\Entity\Product;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
+
+
+
+class CartServices{
+
+  private $session;
+
+  private $repoProduct;
+
+  public function __construct(SessionInterface $session, ProductRepository $repoProduct)
+  {
+    $this->session = $session;
+    $this->repoProduct = $repoProduct;
+  }
+
+  public function addToCart($id){
+
+    $cart=$this->getCart(); // $cart c'est le panier
+    if(isset($cart[$id])){
+      //Le produit est déjà dans le panier
+      $cart[$id]++;
+    }else{
+      //Le produit n'est pas encore dans le panier
+      $cart[$id]=1;
+    }
+    $this->updateCart($cart);
+  }
+
+  public function deleteFromCart($id){
+
+    $cart = $this->getCart();
+
+    if(isset($cart[$id])){
+      //Produit est déjà dans le panier
+      if($cart[$id] > 1){
+        // Le produit existe plus d'une fois
+        $cart[$id]--;
+      }else{
+        unset($cart[$id]);
+      }
+      $this->updateCart($cart);
+    }
+
+  }
+  // Methode pour supprimer tout l'element du panier
+  public function deleteAllToCart($id){
+    $cart = $this->getCart();
+    if(isset($cart[$id])){
+      //Produit est déjà dans le panier
+        unset($cart[$id]);
+        $this->updateCart($cart);
+      }
+  }
+
+  // Methode pour supprimer le panier d'un coup
+  public function deleteCart(){
+      $this->updateCart([]);
+  }
+  // updateCart() est appelé chaque fois qu'il ya un mouvement du panier: ajout, suppression, ... d'un élément du panier
+  public function updateCart($cart){
+    //cart= clé,$cart le contenu de la session
+    $this->session -> set('cart', $cart);
+    // creer une deuxieme session pour rendre le panier visible partout contenant tout le panier
+      $this->session -> set('cartData', $this->getFullCart());
+  }
+
+  public function getCart(){
+
+    return $this->session -> get('cart',[]);
+  }
+
+  //Cette methode permet de recuperer le panier complet
+  public function getFullCart(){
+    $cart = $this->getCart();
+    //Tableau qui contient tous les panier
+    $fullCart = [];
+    foreach($cart as $id => $quantity){
+      $product = $this->repoProduct ->find($id);
+
+      if($product){
+        //produit recuperé avec succès
+        $fullCart[]=
+          [
+            "quantity" => $quantity,
+            "product"=> $product
+          ];
+      }else{
+        // id incorrecte
+        $this->deleteFromCart($id);
+      }
+
+    }
+    return $fullCart;
+
+  }
+
+}

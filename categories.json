@@ -1,0 +1,8 @@
+[{ "stmt": "SELECT * FROM categories;", "header": ["id", "name", "description", "image"], "rows": [
+        ["4", "Bonnet", "NULL", "NULL"],
+        ["5", "Bijou", "NULL", "NULL"],
+        ["6", "montre", "NULL", "NULL"],
+        ["7", "portable", "NULL", "NULL"],
+        ["8", "drone", "NULL", "NULL"],
+        ["9", "gadget", "NULL", "NULL"]
+    ] }]
